@@ -2,7 +2,8 @@
 
 pragma solidity ^0.8.7;
 
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 error NFTMarketplace__PriceMustAboveZero();
 error NFTMarketplace__NotApprovedForMarketplace();
@@ -10,8 +11,10 @@ error NFTMarketplace__AlreadyListed(address nftAddress, uint256 tokenId);
 error NFTMarketplace__NotOwner();
 error NFTMarketplace__NotListed(address nftAddress, uint256 tokenId);
 error NFTMarketplace__PriceNotMet(address nftAddress, uint256 tokenId, uint256 price);
+error NFTMarketplace__NoProceeds();
+error NFTMarketplace__TransferFailed();
 
-contract NFTMarketplace {
+contract NFTMarketplace is ReentrancyGuard {
     struct Listing {
         uint256 price;
         address seller;
@@ -29,6 +32,12 @@ contract NFTMarketplace {
         address indexed nftAddress,
         uint256 indexed tokenId,
         uint256 price
+    )
+
+    event ItemCanceled(
+        address indexed seller,
+        address indexed nftAddress,
+        uint256 indexed tokenId
     )
 
     //mapping(NFT Address -> NFT tokenID -> Listing)
@@ -74,7 +83,7 @@ contract NFTMarketplace {
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
     }
 
-    function buyItem(address nftAddress, uint256 tokenId) external payable isListed(nftAddress, tokenId) {
+    function buyItem(address nftAddress, uint256 tokenId) external payable isListed(nftAddress, tokenId) nonReentrant {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
         if(msg.value < listedItem.price){
             revert NFTMarketplace__PriceNotMet(nftAddress, tokenId, price);
@@ -88,6 +97,25 @@ contract NFTMarketplace {
 
         //检查NFT所有权转移
         emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
+    }
+
+    function cancelListing(address nftAddress, uint256 tokenId) external isOwner(nftAddress,tokenId,msg.sender) isListed(nftAddress,tokenId) {
+        delete(s_listings[nftAddress][tokenId]);
+        emit ItemCanceled(msg.sender,nftAddress, tokenId);
+    }
+
+    function updateListing(address nftAddress, uint256 tokenId, uint256 newPrice) external payable isOwner(nftAddress,tokenId,msg.sender) isListed(nftAddress,tokenId) {
+        if (price <= 0) revert NFTMarketplace__PriceMustAboveZero();
+        s_listings[nftAddress][tokenId].price = newPrice;
+        emit ItemListed(msg.sender, nftAddress, tokenId, newPrice);
+    }
+
+    function withdarwProceeds() external {
+        uint256 proceeds = s_proceeds[msg.sender];
+        if (proceeds <= 0) revert NFTMarketplace__NoProceeds();
+        s_proceeds[msg.sender] = 0;
+        (bool success,) = payable(msg.sender).call{value: proceeds}("");
+        if (!success) revert NFTMarketplace__TransferFailed();
     }
 
     //1.将NFT转账给合约

@@ -5,6 +5,7 @@
         //Sending Money To User ❌
         //Have them withdraw money ✔
         使用safeTransferFrom确保NFT所有权转移
+        使用ReentrancyGuard互斥锁防止重入
     3.cancelItem
     4.updateListing
     5.withdrewProceeds
