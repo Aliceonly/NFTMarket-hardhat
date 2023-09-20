@@ -32,13 +32,13 @@ contract NFTMarketplace is ReentrancyGuard {
         address indexed nftAddress,
         uint256 indexed tokenId,
         uint256 price
-    )
+    );
 
     event ItemCanceled(
         address indexed seller,
         address indexed nftAddress,
         uint256 indexed tokenId
-    )
+    );
 
     //mapping(NFT Address -> NFT tokenID -> Listing)
     mapping(address => mapping(uint256 => Listing)) private s_listings;
@@ -86,7 +86,7 @@ contract NFTMarketplace is ReentrancyGuard {
     function buyItem(address nftAddress, uint256 tokenId) external payable isListed(nftAddress, tokenId) nonReentrant {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
         if(msg.value < listedItem.price){
-            revert NFTMarketplace__PriceNotMet(nftAddress, tokenId, price);
+            revert NFTMarketplace__PriceNotMet(nftAddress, tokenId, listedItem.price);
         }
         //遵循Pull over Push,分散直接转账eth风险
         //Sending Money To User ❌
@@ -105,7 +105,7 @@ contract NFTMarketplace is ReentrancyGuard {
     }
 
     function updateListing(address nftAddress, uint256 tokenId, uint256 newPrice) external payable isOwner(nftAddress,tokenId,msg.sender) isListed(nftAddress,tokenId) {
-        if (price <= 0) revert NFTMarketplace__PriceMustAboveZero();
+        if (newPrice <= 0) revert NFTMarketplace__PriceMustAboveZero();
         s_listings[nftAddress][tokenId].price = newPrice;
         emit ItemListed(msg.sender, nftAddress, tokenId, newPrice);
     }
@@ -120,4 +120,14 @@ contract NFTMarketplace is ReentrancyGuard {
 
     //1.将NFT转账给合约
     //2.approve合约出售NFT
+
+    function getListing(address nftAddress, uint256 tokenId) external view returns(Listing memory){
+        return s_listings[nftAddress][tokenId];
+    }
+
+    function getProceeds(address seller) external view returns(uint256){
+        return s_proceeds[seller];
+    }
+
+
 }
