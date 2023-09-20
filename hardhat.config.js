@@ -15,6 +15,8 @@ const GOERLI_RPC_URL = "https://eth-goerli.g.alchemy.com/v2/2pGuG3TbjvaNSMq4P-vl
 const PRIVATE_KEY = "61a9fae2a22f051baa6cd934a3e5ca23834797b771ed1b1db913a536cd5ce63d"
 const ETHERSCAN_API_KEY = "NQ92VEPM9SJY1MU7SK94I5QEBGS75UKKE5"// optional
 const MNEMONIC = process.env.MNEMONIC || "your mnemonic"
+const POLYGON_MAINNET_RPC_URL = "tNyIj-zKcvLHITjRTIiOVz_EZk1xqRcI"
+const SEPOLIA_RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/dno7UJR0B2Cnn12OYfBlT2WMX7f28O-x"
 
 // Your API key for Etherscan, obtain one at https://etherscan.io/
 const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY || "Your polygonscan API key"
@@ -61,7 +63,7 @@ module.exports = {
     etherscan: {
         // npx hardhat verify --network <NETWORK> <CONTRACT_ADDRESS> <CONSTRUCTOR_PARAMETERS>
         apiKey: {
-            sepolia: ETHERSCAN_API_KEY,
+            // sepolia: ETHERSCAN_API_KEY,
             polygon: POLYGONSCAN_API_KEY,
         },
     },
