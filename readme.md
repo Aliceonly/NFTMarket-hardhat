@@ -11,4 +11,7 @@
     5.withdrewProceeds
 
 铸造和挂售NFT脚本
+取消挂售NFT脚本
+买入NFT脚本
+本地evm挖矿脚本
 链接前端脚本
